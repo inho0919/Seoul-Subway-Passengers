@@ -166,9 +166,10 @@ API 요청과 인증, 데이터 정제, DB 적재 과정에서 발생할 수 있
 
 | 버전 | 상태 | 포함 내용 |
 | --- | --- | --- |
+| v0.1.1 | 설계 보완 | 역별승하차인원 주 데이터 출처를 일별 Open API로 변경하고, README와 흐름 문서의 API 링크를 통일 |
 | v0.1.0 | 설계 단계 | 데이터마트 ETL 흐름 설계, 초기 테이블과 컬럼 정의, 데이터 품질과 재실행 기준 정의, README와 시퀀스 다이어그램 작성 |
 
 ## 데이터 출처
 
-- [서울시 지하철역 정보](https://data.seoul.go.kr/dataList/OA-15442/S/1/datasetView.do)
-- [서울교통공사 역별승하차인원](https://www.data.go.kr/data/15048032/fileData.do)
+- [서울교통공사, 노선별 지하철역 정보](https://data.seoul.go.kr/dataList/OA-15442/S/1/datasetView.do)
+- [서울교통공사, 역별승하차인원 Open API](https://www.data.go.kr/data/15143845/openapi.do)

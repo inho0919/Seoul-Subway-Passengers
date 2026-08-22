@@ -16,7 +16,7 @@ lifelinestyle api #green;2;solid
 
 #####################################
 # [개요]
-note over user,api:[개요] \n - Client는 실제 사용자이며, Dashboard는 사용자 제작\n - Worker가 Open API에서 지하철 역정보와 승하차 데이터를 받아 PostgreSQL 데이터마트에 적재\n - 현재 구현 범위는 Worker가 Open API에서 데이터를 수집해 PostgreSQL에 적재하는 영역\n - 워커는 서버에서 1일 주기로 cron(Windows는 작업 스케줄러) 실행\n - 데이터는 최근 7일을 다시 가져오는 lookback 방식으로 늦게 갱신된 데이터를 보정\n - 중복 데이터는 유니크 키 기반 UPSERT로 처리\n - 실행 상태는 RUNNING, SUCCESS, FAILED로 기록하고 실패 시 수동 또는 다음 스케줄에서 재실행\n\n[기술스택]\n - 언어 : Python 3.14.7 (Runtime Test)\n - RDBMS : PostgreSQL\n\n[API]\n - 지하철역 정보 : https://data.seoul.go.kr/dataList/OA-15442/S/1/datasetView.do\n - 승하차인원 정보 : https://www.data.go.kr/data/15048032/fileData.do\n\n[테이블]\n - ETL_pipeline_run : 실행 이력, 대상 날짜 범위, 상태, 처리 건수, 오류 요약\n - ETL_api_response : API 네임, 요청 파라미터, 수신 시각, HTTP 상태, 원본 JSON\n - ETL_station_info : 역코드, 호선코드, 역명, 호선명, 외부역코드, 수집 시각\n - ETL_station_passenger : 서비스 날짜, 역코드, 호선, 시간대, 승하차 인원, run_id\n\n[데이터 계약] \n - ETL_pipeline_run : run_id, 대상 날짜 범위, 시작 및 종료 시각, 상태, API별 수집 건수, 최종 적재 건수, 오류 메시지\n - ETL_api_response : run_id, API명, 요청 날짜 범위, 페이지 번호, HTTP 상태, 수신 시각, 원본 JSON\n - ETL_station_passenger 유니크 키 후보 : 서비스 날짜, 역코드, 호선, 시간대, 카드 유형\n - 카드 유형별 행을 유지할지, 합산할지는 API 응답 명세 확인 후 확정\n - 검증 기준 : 필수값, 승하차 인원 0 이상, 시간대 형식, 역 마스터 매핑, 유니크 키 중복 없음
+note over user,api:[개요] \n - Client는 실제 사용자이며, Dashboard는 사용자 제작\n - Worker가 Open API에서 지하철 역정보와 승하차 데이터를 받아 PostgreSQL 데이터마트에 적재\n - 현재 구현 범위는 Worker가 Open API에서 데이터를 수집해 PostgreSQL에 적재하는 영역\n - 워커는 서버에서 1일 주기로 cron(Windows는 작업 스케줄러) 실행\n - 데이터는 최근 7일을 다시 가져오는 lookback 방식으로 늦게 갱신된 데이터를 보정\n - 중복 데이터는 유니크 키 기반 UPSERT로 처리\n - 실행 상태는 RUNNING, SUCCESS, FAILED로 기록하고 실패 시 수동 또는 다음 스케줄에서 재실행\n\n[기술스택]\n - 언어 : Python 3.14.7 (Runtime Test)\n - RDBMS : PostgreSQL\n\n[API]\n - 지하철역 정보 : https://data.seoul.go.kr/dataList/OA-15442/S/1/datasetView.do\n - 승하차인원 정보 : https://www.data.go.kr/data/15143845/openapi.do\n\n[테이블]\n - ETL_pipeline_run : 실행 이력, 대상 날짜 범위, 상태, 처리 건수, 오류 요약\n - ETL_api_response : API 네임, 요청 파라미터, 수신 시각, HTTP 상태, 원본 JSON\n - ETL_station_info : 역코드, 호선코드, 역명, 호선명, 외부역코드, 수집 시각\n - ETL_station_passenger : 서비스 날짜, 역코드, 호선, 시간대, 승하차 인원, run_id\n\n[데이터 계약] \n - ETL_pipeline_run : run_id, 대상 날짜 범위, 시작 및 종료 시각, 상태, API별 수집 건수, 최종 적재 건수, 오류 메시지\n - ETL_api_response : run_id, API명, 요청 날짜 범위, 페이지 번호, HTTP 상태, 수신 시각, 원본 JSON\n - ETL_station_passenger 유니크 키 후보 : 서비스 날짜, 역코드, 호선, 시간대, 카드 유형\n - 카드 유형별 행을 유지할지, 합산할지는 API 응답 명세 확인 후 확정\n - 검증 기준 : 필수값, 승하차 인원 0 이상, 시간대 형식, 역 마스터 매핑, 유니크 키 중복 없음
 
 # [파이프라인]
 group 1. ETL Pipeline
@@ -25,7 +25,7 @@ worker->db: ETL_pipeline_run 기록 (RUNNING, 대상 날짜 범위)
 
 # [역정보: Extract → Transform → Load]
 note over db,api:역정보 수집 및 기준정보 적재
-worker->api: 지하철 역정보 요청\n{인증키, 페이지 정보}
+worker->api: 노선별 지하철역 정보 요청\n{인증키, 페이지 정보}
 api->worker: 역정보 응답
 worker->db: ETL_api_response 저장 (역정보 원본)
 activate worker #orange
@@ -35,7 +35,7 @@ worker->db: ETL_station_info UPSERT
 
 # [승하차인원: Extract → Transform → Load]
 note over db,api:승하차인원 수집 및 사실 데이터 적재
-worker->api: 승하차인원 요청\n{인증키, 최근 7일, 페이지 정보}
+worker->api: 역별승하차인원 Open API 요청\n{인증키, 최근 7일, 페이지 정보}
 api->worker: 승하차인원 응답
 worker->db: ETL_api_response 저장 (승하차 원본)
 activate worker #orange
