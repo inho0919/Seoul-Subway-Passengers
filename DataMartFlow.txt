@@ -1,0 +1,63 @@
+title [Data Mart - Seoul Subway Passengers]
+#####################################
+# [초기 구성]
+actor "Client" as user #white
+participant "Dashboard" as dashboard #pink #hotpink;2;solid
+control  "Worker" as worker #orange
+database "PostgreSQL" as db #navy #white;2;solid
+participant "Open API" as api #lightgreen #green;2;solid
+
+# [노드 세팅]
+lifelinestyle user #black;2;solid
+lifelinestyle dashboard #hotpink;2;solid
+lifelinestyle worker #orange;2;solid
+lifelinestyle db #navy;2;solid
+lifelinestyle api #green;2;solid
+
+#####################################
+# [개요]
+note over user,api:여기선 워커부터 Open API 까지만 구현\nmultiple lines\nof text
+
+# [파이프라인]
+group 1. ETL Pipeline
+loop 1일 주기로 스케쥴링
+# [Extract 수집]
+note over worker,api:Extract - 수집
+worker->api: 지하철 역정보 데이터 요청\n{payload : }
+api->worker: 데이터 갱신 성공
+worker->db: 지하철 역 정보 upsert + 업데이트 여부 체크 포인트
+worker->db: 업데이트 여부 체크
+db->worker: 업데이트 확인 
+worker->api : 승하차인원 정보 API 요청\n{payload : }
+api->worker: 데이터 response
+
+# [Transform 변환]
+note over worker,api:Transform - 변환
+activate worker #orange
+worker->worker: 가공
+worker->worker: 가공
+deactivate worker
+
+# [Load 적재]
+note over worker,api:Load - 적재
+worker->db :데이터 저장 + 업데이트 여부 플래그 복구
+end
+
+#####################################
+# [실패 케이스]
+group Error Case
+workerx[#red;1]-api: [지하철 역정보] 데이터 갱신 실패
+workerx[#red;1]-db: [업데이트 다음회차] 업데이트 안된 것을 확인 다음회차 대기
+workerx[#red;1]-api: [승하차인원 정보] 인증실패
+workerx[#red;1]-worker: [가공] 실패
+workerx[#red;1]-db: [DB] 적재 실패
+end
+end
+
+group 2. Data Mart
+user-->dashboard: 데이터요청
+dashboard->db:get data
+db->dashboard:data
+dashboard-->user:데이터제공
+end
+
