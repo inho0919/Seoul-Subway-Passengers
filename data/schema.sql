@@ -1,4 +1,6 @@
+-- schema.sql
 -- Seoul Subway Passengers, PostgreSQL schema
+-- PostgreSQL 테이블, 인덱스 정보를 담은 파일
 
 CREATE TABLE IF NOT EXISTS ETL_pipeline_run (
     run_id UUID PRIMARY KEY,
