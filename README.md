@@ -18,25 +18,25 @@
 
 ### 1. 개요
 
-지하철 공공 API에서 수집한 데이터를 Worker가 PostgreSQL 데이터마트에 적재하고, 이후 Dashboard를 통해 사용자가 조회하는 전체 구조입니다.
+지하철 공공 API에서 수집한 데이터를 Worker가 PostgreSQL 데이터마트에 적재하고, 이후 Dashboard를 통해 사용자가 조회하는 전체 구조
 
 ![데이터마트 개요](assets/Structure1.png)
 
 ### 2. 데이터 적재 시나리오
 
-Worker는 역정보와 승하차인원 API를 호출하고, 원본 응답 저장, 데이터 정제와 검증, UPSERT 적재를 순서대로 수행합니다.
+Worker는 역정보와 승하차인원 API를 호출하고, 원본 응답 저장, 데이터 정제와 검증, UPSERT 적재를 순서대로 수행
 
 ![데이터 적재 시나리오](assets/Structure2.png)
 
 ### 3. 오류 처리 시나리오
 
-API 요청과 인증, 데이터 정제, DB 적재 과정에서 발생할 수 있는 오류를 실행 이력에 FAILED 상태로 남기고, 다음 스케줄 또는 수동 실행으로 재처리합니다.
+API 요청과 인증, 데이터 정제, DB 적재 과정에서 발생할 수 있는 오류를 실행 이력에 FAILED 상태로 남기고, 다음 스케줄 또는 수동 실행으로 재처리
 
 ![오류 처리 시나리오](assets/Structure3.png)
 
 ### 4. 사용자 데이터 조회 시나리오
 
-사용자는 Dashboard에서 데이터를 요청하고, Dashboard는 PostgreSQL 데이터마트를 조회한 결과를 사용자에게 제공합니다.
+사용자는 Dashboard에서 데이터를 요청하고, Dashboard는 PostgreSQL 데이터마트를 조회한 결과를 사용자에게 제공
 
 ![사용자 데이터 조회 시나리오](assets/Structure4.png)
 
